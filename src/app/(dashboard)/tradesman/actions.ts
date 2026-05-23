@@ -14,7 +14,13 @@ export async function claimJob(jobId: string): Promise<{ error?: string }> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const { error } = await supabase
+  const db = supabase as unknown as {
+    from: (t: string) => {
+      update: (r: object) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> } }
+    }
+  }
+
+  const { error } = await db
     .from('jobs')
     .update({ status: 'matched', tradesman_id: user.id })
     .eq('id', jobId)
