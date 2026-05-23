@@ -61,7 +61,7 @@ export default async function TradesmanJobsPage() {
                       {job.city && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{job.city}</span>}
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
                       {job.estimated_cost_min && job.estimated_cost_max && (
-                        <span className="text-green-600 font-medium">${job.estimated_cost_min}–${job.estimated_cost_max}</span>
+                        <span className="text-green-600 font-medium">${Math.round(job.estimated_cost_min / 100)}–${Math.round(job.estimated_cost_max / 100)}</span>
                       )}
                     </div>
                   </div>

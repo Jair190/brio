@@ -72,13 +72,15 @@ export default function TradesmanSignupPage() {
       return
     }
     if (data.user) {
-      await supabase.from('tradesmen').insert({
-        id: data.user.id,
-        full_name: step1Data.full_name,
-        license_number: values.license_number,
-        service_area: `${values.service_radius_miles} mile radius`,
-        verified: false,
-      })
+      await (supabase as unknown as { from: (t: string) => { insert: (r: object) => Promise<unknown> } })
+        .from('tradesmen')
+        .insert({
+          id: data.user.id,
+          full_name: step1Data.full_name,
+          license_number: values.license_number,
+          service_area: `${values.service_radius_miles} mile radius`,
+          verified: false,
+        })
     }
     setSubmitted(true)
   }

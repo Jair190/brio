@@ -30,8 +30,8 @@ const MOCK_JOBS: Job[] = [
     city: 'San Francisco',
     urgency: 'soon',
     status: 'triaged',
-    estimated_cost_min: 100,
-    estimated_cost_max: 200,
+    estimated_cost_min: 10000,
+    estimated_cost_max: 20000,
     ai_triage_result: {
       diagnosis: 'Worn cartridge or O-ring inside the faucet body.',
       recommended_action: 'professional',
@@ -46,8 +46,8 @@ const MOCK_JOBS: Job[] = [
     city: 'Oakland',
     urgency: 'urgent',
     status: 'triaged',
-    estimated_cost_min: 200,
-    estimated_cost_max: 600,
+    estimated_cost_min: 20000,
+    estimated_cost_max: 60000,
     ai_triage_result: {
       diagnosis: 'Likely thermocouple failure or pilot light issue on gas water heater.',
       recommended_action: 'professional',
@@ -62,8 +62,8 @@ const MOCK_JOBS: Job[] = [
     city: 'San Jose',
     urgency: 'emergency',
     status: 'triaged',
-    estimated_cost_min: 1500,
-    estimated_cost_max: 5000,
+    estimated_cost_min: 150000,
+    estimated_cost_max: 500000,
     ai_triage_result: {
       diagnosis: 'Slab leak — pipe has burst or corroded beneath the foundation.',
       recommended_action: 'professional',
@@ -216,7 +216,7 @@ export default async function TradesmanDashboardPage() {
                           {hasCost && (
                             <span className="flex items-center gap-1 text-green-600 font-medium">
                               <DollarSign className="h-3 w-3" />
-                              ${job.estimated_cost_min}–${job.estimated_cost_max}
+                              ${Math.round(job.estimated_cost_min! / 100)}–${Math.round(job.estimated_cost_max! / 100)}
                             </span>
                           )}
                         </div>
