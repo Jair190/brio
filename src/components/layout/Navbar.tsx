@@ -57,7 +57,7 @@ export default function Navbar() {
   const dashboardHref = user?.role === 'tradesman' ? '/tradesman' : '/client'
 
   return (
-    <nav className="border-b border-slate-200/60 bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-slate-200/60 bg-white sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold tracking-tight text-lg text-slate-900">
           <Wrench className="h-5 w-5 text-blue-600" />
