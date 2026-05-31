@@ -1,19 +1,32 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Fraunces, DM_Sans } from 'next/font/google'
+import { QueryProvider } from '@/components/providers/QueryProvider'
+import './globals.css'
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-fraunces',
+  axes: ['SOFT', 'WONK', 'opsz'],
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['300', '400', '500', '600', '700'],
+})
 
 export const metadata: Metadata = {
-  title: "Brio — Find Trusted Plumbers in the Bay Area",
+  title: 'Brio — Trusted Plumbers in the Bay Area',
   description:
-    "Describe your plumbing problem, get AI-powered guidance, and have a trusted Bay Area plumber handle the rest.",
-};
+    'Describe your plumbing problem, get AI-powered guidance, and have a trusted Bay Area plumber handle the rest.',
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${fraunces.variable} ${dmSans.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col font-sans">
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
-  );
+  )
 }

@@ -3,52 +3,35 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Wrench, Menu, X, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-type User = {
-  full_name: string | null
-  role: string | null
-}
+type User = { full_name: string | null; role: string | null }
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
-
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUser({
-          full_name: data.user.user_metadata?.full_name ?? null,
-          role: data.user.user_metadata?.role ?? 'client',
-        })
-      }
+      if (data.user) setUser({ full_name: data.user.user_metadata?.full_name ?? null, role: data.user.user_metadata?.role ?? 'client' })
     })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({
-          full_name: session.user.user_metadata?.full_name ?? null,
-          role: session.user.user_metadata?.role ?? 'client',
-        })
-      } else {
-        setUser(null)
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session?.user) setUser({ full_name: session.user.user_metadata?.full_name ?? null, role: session.user.user_metadata?.role ?? 'client' })
+      else setUser(null)
     })
-
-    return () => subscription.unsubscribe()
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll)
+    return () => { subscription.unsubscribe(); window.removeEventListener('scroll', onScroll) }
   }, [])
 
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
     setUser(null)
-    setDropdownOpen(false)
     router.push('/')
     router.refresh()
   }
@@ -57,75 +40,65 @@ export default function Navbar() {
   const dashboardHref = user?.role === 'tradesman' ? '/tradesman' : '/client'
 
   return (
-    <nav className="border-b border-slate-200/60 bg-white sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight text-lg text-slate-900">
-          <Wrench className="h-5 w-5 text-blue-600" />
-          Brio
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#0C0A09]/95 backdrop-blur-md border-b border-white/5 shadow-xl shadow-black/20' : 'bg-[#0C0A09]'}`}>
+      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-7 h-7 rounded-md bg-amber-600 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 7C2 4.24 4.24 2 7 2C8.1 2 9.12 2.36 9.93 2.97L3.97 8.93C3.36 8.12 3 7.1 3 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M12 7C12 9.76 9.76 12 7 12C5.9 12 4.88 11.64 4.07 11.03L10.03 5.07C10.64 5.88 11 6.9 11 8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <span className="font-display font-bold text-white text-lg tracking-tight">Brio</span>
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden sm:flex items-center gap-6">
-          <Link href="/#how-it-works" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-200">
-            How it works
+        <div className="hidden sm:flex items-center gap-8">
+          <Link href="/founders" className="text-sm text-stone-400 hover:text-white transition-colors duration-200 tracking-wide">
+            About
           </Link>
-          <Link href="/signup/tradesman" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-200">
+          <Link href="/signup/tradesman" className="text-sm text-stone-400 hover:text-white transition-colors duration-200 tracking-wide">
             For Plumbers
-          </Link>
-          <Link href="/beta" className="text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors duration-200">
-            Dev
           </Link>
 
           {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors duration-200"
+            <div className="flex items-center gap-3">
+              <Link
+                href={dashboardHref}
+                className="text-sm text-stone-300 hover:text-white transition-colors duration-200"
               >
-                <div className="h-7 w-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
-                  {firstName[0].toUpperCase()}
-                </div>
-                {firstName}
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                Dashboard
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="text-sm text-stone-500 hover:text-stone-300 transition-colors duration-200"
+              >
+                Sign out
               </button>
-
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-50">
-                  <Link
-                    href={dashboardHref}
-                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
-            <>
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="transition-colors duration-200">Log in</Button>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/login"
+                className="text-sm text-stone-400 hover:text-white transition-colors duration-200"
+              >
+                Sign in
               </Link>
-              <Link href="/founders">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                  About us
-                </Button>
+              <Link
+                href="/client/new-request"
+                className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200"
+              >
+                Get a diagnosis
               </Link>
-            </>
+            </div>
           )}
         </div>
 
         {/* Mobile toggle */}
         <button
-          className="sm:hidden p-2 transition-colors duration-200"
+          className="sm:hidden p-2 text-stone-400 hover:text-white transition-colors"
           onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -133,34 +106,19 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="sm:hidden border-t border-slate-200/60 bg-white px-4 py-4 space-y-3">
-          <Link href="/#how-it-works" className="block text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150" onClick={() => setOpen(false)}>
-            How it works
-          </Link>
-          <Link href="/signup/tradesman" className="block text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150" onClick={() => setOpen(false)}>
-            For Plumbers
-          </Link>
-          <Link href="/beta" className="block text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors duration-150" onClick={() => setOpen(false)}>
-            Dev
-          </Link>
-
+        <div className="sm:hidden border-t border-white/5 bg-[#0C0A09] px-5 py-5 space-y-4">
+          <Link href="/founders" className="block text-sm text-stone-400 hover:text-white transition-colors" onClick={() => setOpen(false)}>About</Link>
+          <Link href="/signup/tradesman" className="block text-sm text-stone-400 hover:text-white transition-colors" onClick={() => setOpen(false)}>For Plumbers</Link>
           {user ? (
             <>
-              <div className="text-sm font-medium text-slate-700 py-1">Hi, {firstName}</div>
-              <Link href={dashboardHref} onClick={() => setOpen(false)}>
-                <Button variant="outline" size="sm" className="w-full justify-start">Dashboard</Button>
-              </Link>
-              <button onClick={handleSignOut} className="w-full text-left text-sm font-medium text-slate-600 hover:text-slate-900 py-1 transition-colors">
-                Sign out
-              </button>
+              <Link href={dashboardHref} className="block text-sm text-stone-300" onClick={() => setOpen(false)}>Dashboard</Link>
+              <button onClick={handleSignOut} className="block text-sm text-stone-500">Sign out</button>
             </>
           ) : (
             <>
-              <Link href="/login" onClick={() => setOpen(false)}>
-                <Button variant="ghost" size="sm" className="w-full justify-start transition-colors duration-200">Log in</Button>
-              </Link>
-              <Link href="/founders" onClick={() => setOpen(false)}>
-                <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200">About us</Button>
+              <Link href="/login" className="block text-sm text-stone-400 hover:text-white transition-colors" onClick={() => setOpen(false)}>Sign in</Link>
+              <Link href="/client/new-request" onClick={() => setOpen(false)} className="block bg-amber-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg text-center">
+                Get a free diagnosis
               </Link>
             </>
           )}

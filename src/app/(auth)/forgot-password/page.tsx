@@ -5,12 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { Wrench } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -32,45 +28,54 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <Card>
-        <CardContent className="pt-6 text-center space-y-2">
-          <div className="text-4xl mb-4">📧</div>
-          <h2 className="text-xl font-semibold">Check your email</h2>
-          <p className="text-slate-500 text-sm">
-            If an account exists for that email, we sent a password reset link.
-          </p>
-          <Link href="/login" className="text-blue-600 hover:underline text-sm block mt-4">
-            Back to sign in
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="animate-fade-up text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-600/15 border border-amber-600/20 flex items-center justify-center mx-auto mb-6">
+          <Mail className="h-7 w-7 text-amber-400" />
+        </div>
+        <h2 className="font-display text-2xl font-bold text-white mb-3">Check your email</h2>
+        <p className="text-stone-400 text-sm leading-relaxed max-w-xs mx-auto mb-6">
+          If an account exists for that email, we sent a password reset link.
+        </p>
+        <Link href="/login" className="text-sm text-amber-600 hover:text-amber-500 transition-colors">
+          Back to sign in
+        </Link>
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <div className="flex justify-center mb-2">
-          <Wrench className="h-8 w-8 text-blue-600" />
-        </div>
-        <CardTitle className="text-2xl">Reset your password</CardTitle>
-        <p className="text-sm text-slate-500">Enter your email and we&apos;ll send a reset link</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register('email')} />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message as string}</p>}
+    <div className="animate-fade-up">
+      <div className="text-center mb-8">
+        <h1 className="font-display text-3xl font-bold text-white mb-2">Reset your password</h1>
+        <p className="text-stone-400 text-sm">Enter your email and we&apos;ll send a reset link</p>
+      </div>
+
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-stone-300">Email</label>
+            <input
+              id="email"
+              type="email"
+              {...register('email')}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
+              placeholder="you@example.com"
+            />
+            {errors.email && <p className="text-xs text-amber-400">{errors.email.message as string}</p>}
           </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 text-sm"
+          >
             {isSubmitting ? 'Sending…' : 'Send reset link'}
-          </Button>
+          </button>
         </form>
-        <p className="text-center text-sm text-slate-500 mt-4">
-          <Link href="/login" className="text-blue-600 hover:underline">Back to sign in</Link>
-        </p>
-      </CardContent>
-    </Card>
+      </div>
+
+      <p className="text-center text-sm text-stone-500 mt-6">
+        <Link href="/login" className="text-amber-600 hover:text-amber-500 transition-colors">Back to sign in</Link>
+      </p>
+    </div>
   )
 }

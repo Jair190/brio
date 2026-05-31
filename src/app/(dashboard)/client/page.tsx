@@ -1,9 +1,6 @@
 import Link from 'next/link'
-import { Plus, Wrench, Clock, CheckCircle, Loader2 } from 'lucide-react'
+import { Plus, Clock, CheckCircle, Loader2, ArrowRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { isDevMode, DEV_USER } from '@/lib/dev-mode'
 import type { Job } from '@/types/database'
@@ -18,14 +15,14 @@ const STATUS_LABELS: Record<Job['status'], string> = {
   canceled: 'Canceled',
 }
 
-const STATUS_VARIANT: Record<Job['status'], 'default' | 'secondary' | 'outline' | 'destructive'> = {
-  pending_triage: 'secondary',
-  triaged: 'default',
-  matched: 'default',
-  confirmed: 'default',
-  in_progress: 'default',
-  completed: 'outline',
-  canceled: 'destructive',
+const STATUS_COLORS: Record<Job['status'], string> = {
+  pending_triage: 'bg-stone-100 text-stone-500',
+  triaged:        'bg-amber-50 text-amber-700',
+  matched:        'bg-amber-100 text-amber-800',
+  confirmed:      'bg-amber-100 text-amber-800',
+  in_progress:    'bg-green-50 text-green-700',
+  completed:      'bg-stone-100 text-stone-500',
+  canceled:       'bg-red-50 text-red-600',
 }
 
 function StatusIcon({ status }: { status: Job['status'] }) {
@@ -56,77 +53,80 @@ export default async function ClientDashboardPage() {
   const pastJobs = (jobs ?? []).filter(j => ['completed', 'canceled'].includes(j.status))
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Hey {name} 👋</h1>
-          <p className="text-slate-700 mt-1">What plumbing problem can we help you with today?</p>
-        </div>
-        <Link href="/client/new-request">
-          <Button className="bg-blue-600 hover:bg-blue-700 transition-all duration-200">
-            <Plus className="h-4 w-4 mr-2" /> New Request
-          </Button>
-        </Link>
+    <div className="max-w-2xl mx-auto space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-2xl font-bold text-stone-900">Hey, {name} 👋</h1>
+        <p className="text-stone-400 mt-1 text-sm">Here are your plumbing requests.</p>
       </div>
 
       {/* Active jobs */}
-      <Card className="shadow-sm ring-1 ring-slate-100">
-        <CardHeader>
-          <CardTitle className="text-base">Active Jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activeJobs.length === 0 ? (
-            <div className="flex flex-col items-center py-8 text-center">
-              <div className="bg-slate-100 rounded-full p-3 mb-3">
-                <Wrench className="h-12 w-12 text-slate-400 opacity-50" />
-              </div>
-              <p className="text-sm text-slate-600">No requests yet — submit your first one above</p>
-              <p className="text-xs text-slate-500 mt-1">We&apos;ll match you with a plumber after triage.</p>
+      <div>
+        <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-3">Active Requests</h2>
+        {activeJobs.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-stone-200 p-10 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto mb-4">
+              <svg width="20" height="20" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 7C2 4.24 4.24 2 7 2C8.1 2 9.12 2.36 9.93 2.97L3.97 8.93C3.36 8.12 3 7.1 3 6" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M12 7C12 9.76 9.76 12 7 12C5.9 12 4.88 11.64 4.07 11.03L10.03 5.07C10.64 5.88 11 6.9 11 8" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
             </div>
-          ) : (
-            <ul className="divide-y">
-              {activeJobs.map(job => <JobRow key={job.id} job={job} />)}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+            <p className="font-semibold text-stone-700 text-sm mb-1">No active requests</p>
+            <p className="text-xs text-stone-400 mb-5 max-w-xs mx-auto">Describe your plumbing issue and we&apos;ll match you with a trusted Bay Area plumber.</p>
+            <Link
+              href="/client/new-request"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors"
+            >
+              Submit your first request <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #e7e5e4' }}>
+            {activeJobs.map((job, i) => (
+              <JobRow key={job.id} job={job} showDivider={i > 0} />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Past jobs */}
       {pastJobs.length > 0 && (
-        <Card className="shadow-sm ring-1 ring-slate-100">
-          <CardHeader>
-            <CardTitle className="text-base">Past Jobs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="divide-y">
-              {pastJobs.map(job => <JobRow key={job.id} job={job} />)}
-            </ul>
-          </CardContent>
-        </Card>
+        <div>
+          <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-3">Past Requests</h2>
+          <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #e7e5e4' }}>
+            {pastJobs.map((job, i) => (
+              <JobRow key={job.id} job={job} showDivider={i > 0} />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
 }
 
-function JobRow({ job }: { job: Job }) {
+function JobRow({ job, showDivider }: { job: Job; showDivider: boolean }) {
   const diy = job.ai_recommended_diy
   return (
-    <li className="py-3 flex items-start justify-between gap-3 hover:bg-slate-50 transition-colors rounded-lg px-2 -mx-2">
+    <div
+      className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-stone-50 transition-colors duration-150"
+      style={showDivider ? { borderTop: '1px solid #f5f5f4' } : {}}
+    >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-900 truncate">{job.title}</p>
-        <p className="text-xs text-slate-500 mt-0.5">
-          {job.city} · {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+        <p className="text-sm font-semibold text-stone-900 truncate">{job.title}</p>
+        <p className="text-xs text-stone-400 mt-0.5">
+          {job.city && <>{job.city} · </>}
+          {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
           {job.status === 'triaged' && (
-            <span className={`ml-2 ${diy ? 'text-green-600' : 'text-blue-600'}`}>
-              {diy ? '· DIY recommended' : '· Pro recommended'}
+            <span className={`ml-1.5 font-medium ${diy ? 'text-green-600' : 'text-amber-600'}`}>
+              · {diy ? 'DIY ok' : 'Pro needed'}
             </span>
           )}
         </p>
       </div>
-      <Badge variant={STATUS_VARIANT[job.status]} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full shrink-0">
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${STATUS_COLORS[job.status]}`}>
         <StatusIcon status={job.status} />
         {STATUS_LABELS[job.status]}
-      </Badge>
-    </li>
+      </span>
+    </div>
   )
 }

@@ -5,12 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { Wrench } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 const schema = z.object({
   full_name: z.string().min(2, 'Enter your full name'),
@@ -51,58 +47,95 @@ export default function ClientSignupPage() {
 
   if (submitted) {
     return (
-      <Card>
-        <CardContent className="pt-6 text-center space-y-2">
-          <div className="text-4xl mb-4">📬</div>
-          <h2 className="text-xl font-semibold">Check your email</h2>
-          <p className="text-slate-500 text-sm">
-            We sent a confirmation link to your email. Click it to activate your account.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="animate-fade-up text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-600/15 border border-amber-600/20 flex items-center justify-center mx-auto mb-6">
+          <Mail className="h-7 w-7 text-amber-400" />
+        </div>
+        <h2 className="font-display text-2xl font-bold text-white mb-3">Check your email</h2>
+        <p className="text-stone-400 text-sm leading-relaxed max-w-xs mx-auto">
+          We sent a confirmation link to your email. Click it to activate your account and start using Brio.
+        </p>
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <div className="flex justify-center mb-2">
-          <Wrench className="h-8 w-8 text-blue-600" />
-        </div>
-        <CardTitle className="text-2xl">Create your account</CardTitle>
-        <p className="text-sm text-slate-500">Get plumbing help in the Bay Area</p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1">
-            <Label htmlFor="full_name">Full name</Label>
-            <Input id="full_name" {...register('full_name')} />
-            {errors.full_name && <p className="text-sm text-red-500">{errors.full_name.message}</p>}
+    <div className="animate-fade-up">
+      <div className="text-center mb-8">
+        <h1 className="font-display text-3xl font-bold text-white mb-2">Create your account</h1>
+        <p className="text-stone-400 text-sm">Get plumbing help in the Bay Area</p>
+      </div>
+
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-1.5">
+            <label htmlFor="full_name" className="block text-sm font-medium text-stone-300">Full name</label>
+            <input
+              id="full_name"
+              {...register('full_name')}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
+              placeholder="Jane Smith"
+            />
+            {errors.full_name && <p className="text-xs text-amber-400">{errors.full_name.message}</p>}
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register('email')} />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-stone-300">Email</label>
+            <input
+              id="email"
+              type="email"
+              {...register('email')}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
+              placeholder="you@example.com"
+            />
+            {errors.email && <p className="text-xs text-amber-400">{errors.email.message}</p>}
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register('password')} />
-            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-stone-300">Password</label>
+            <input
+              id="password"
+              type="password"
+              {...register('password')}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
+              placeholder="At least 8 characters"
+            />
+            {errors.password && <p className="text-xs text-amber-400">{errors.password.message}</p>}
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="phone">Phone <span className="text-slate-400">(optional)</span></Label>
-            <Input id="phone" type="tel" {...register('phone')} />
+
+          <div className="space-y-1.5">
+            <label htmlFor="phone" className="block text-sm font-medium text-stone-300">
+              Phone <span className="text-stone-500 font-normal">(optional)</span>
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              {...register('phone')}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
+              placeholder="(415) 555-0100"
+            />
           </div>
-          {error && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-md">{error}</p>}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+
+          {error && (
+            <div className="bg-red-950/40 border border-red-900/40 rounded-xl px-4 py-3">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 text-sm mt-2"
+          >
             {isSubmitting ? 'Creating account…' : 'Create account'}
-          </Button>
+          </button>
         </form>
-        <p className="text-center text-sm text-slate-500 mt-4">
-          Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:underline">Sign in</Link>
-        </p>
-      </CardContent>
-    </Card>
+      </div>
+
+      <p className="text-center text-sm text-stone-500 mt-6">
+        Already have an account?{' '}
+        <Link href="/login" className="text-amber-600 hover:text-amber-500 transition-colors">Sign in</Link>
+      </p>
+    </div>
   )
 }

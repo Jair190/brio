@@ -2,10 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Wrench, User, HardHat, ArrowRight, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { User, HardHat, ArrowRight, Loader2 } from 'lucide-react'
 import { submitBetaPassword } from './actions'
 
 type Role = 'client' | 'tradesman'
@@ -28,88 +25,94 @@ export default function BetaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex flex-col items-center justify-center px-4">
-      <Link href="/" className="flex items-center gap-2 font-bold text-white text-xl mb-10">
-        <Wrench className="h-5 w-5 text-blue-400" />
-        Brio
-      </Link>
+    <div className="min-h-screen grain flex flex-col items-center justify-center px-6" style={{ background: '#0C0A09' }}>
+      <div className="bg-grid absolute inset-0" />
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[350px] rounded-full opacity-10"
+        style={{ background: 'radial-gradient(ellipse, #C26D21 0%, transparent 70%)' }}
+      />
 
-      <div className="w-full max-w-sm space-y-4">
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-white">Development Access</h1>
-          <p className="text-slate-400 text-sm mt-1">Choose a side to preview, then enter the access code.</p>
+      <div className="relative z-10 w-full max-w-sm">
+        {/* Logo */}
+        <Link href="/" className="flex items-center justify-center gap-2.5 mb-10">
+          <div className="w-7 h-7 rounded-md bg-amber-600 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 7C2 4.24 4.24 2 7 2C8.1 2 9.12 2.36 9.93 2.97L3.97 8.93C3.36 8.12 3 7.1 3 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M12 7C12 9.76 9.76 12 7 12C5.9 12 4.88 11.64 4.07 11.03L10.03 5.07C10.64 5.88 11 6.9 11 8" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <span className="font-display font-bold text-white text-lg tracking-tight">Brio</span>
+        </Link>
+
+        <div className="text-center mb-8">
+          <h1 className="font-display text-2xl font-bold text-white mb-1.5">Development Access</h1>
+          <p className="text-stone-400 text-sm">Choose a view to preview, then enter the access code.</p>
         </div>
 
         {/* Role selector */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setRole('client')}
-            className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 ${
-              role === 'client'
-                ? 'border-blue-500 bg-blue-600/20 text-white shadow-md ring-2 ring-blue-500/50'
-                : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <User className="h-7 w-7" />
-            <span className="text-sm font-medium">Client</span>
-            <span className="text-xs opacity-60">Describe your issue and get AI triage</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRole('tradesman')}
-            className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 ${
-              role === 'tradesman'
-                ? 'border-blue-500 bg-blue-600/20 text-white shadow-md ring-2 ring-blue-500/50'
-                : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <HardHat className="h-7 w-7" />
-            <span className="text-sm font-medium">Contractor</span>
-            <span className="text-xs opacity-60">View and manage job leads</span>
-          </button>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {([
+            { value: 'client' as Role, icon: User, label: 'Client', sub: 'Get AI triage & find plumbers' },
+            { value: 'tradesman' as Role, icon: HardHat, label: 'Contractor', sub: 'Manage jobs & CRM' },
+          ]).map(({ value, icon: Icon, label, sub }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRole(value)}
+              className={`flex flex-col items-center gap-2.5 p-5 rounded-xl border-2 transition-all duration-200 ${
+                role === value
+                  ? 'border-amber-600 bg-amber-600/10 text-white'
+                  : 'border-white/8 bg-white/4 text-stone-400 hover:border-white/15 hover:text-stone-200'
+              }`}
+            >
+              <Icon className="h-6 w-6" />
+              <div className="text-center">
+                <p className="text-sm font-semibold">{label}</p>
+                <p className="text-xs text-stone-400 mt-0.5 leading-snug">{sub}</p>
+              </div>
+            </button>
+          ))}
         </div>
 
         {/* Password form */}
-        <form onSubmit={handleSubmit} className="bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="rounded-2xl p-6 space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-slate-300 text-sm">Access code</Label>
-            <Input
+            <label htmlFor="password" className="block text-sm font-medium text-stone-300">Access code</label>
+            <input
               id="password"
               name="password"
               type="password"
               placeholder="Enter access code"
               autoFocus
-              className="bg-slate-900/80 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-900/20 border border-red-800/30 rounded-md px-3 py-2">
-              {error}
-            </p>
+            <div className="bg-red-950/40 border border-red-900/40 rounded-xl px-4 py-3">
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
           )}
 
-          <Button
+          <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
             disabled={isPending || !role}
+            className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all duration-200 text-sm flex items-center justify-center gap-2"
           >
             {isPending ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Entering…</>
+              <><Loader2 className="h-4 w-4 animate-spin" /> Entering…</>
             ) : (
-              <>Enter {role ? (role === 'client' ? 'Client' : 'Contractor') : ''} view <ArrowRight className="h-4 w-4 ml-2" /></>
+              <>Enter {role ? (role === 'client' ? 'Client' : 'Contractor') : ''} view <ArrowRight className="h-4 w-4" /></>
             )}
-          </Button>
+          </button>
 
           {!role && (
-            <p className="text-center text-xs text-slate-500">Select a view above first</p>
+            <p className="text-center text-xs text-stone-400">Select a view above first</p>
           )}
         </form>
       </div>
 
-      <p className="text-slate-600 text-xs mt-8">Bay Area · Private Beta · 2025</p>
+      <p className="relative z-10 text-stone-500 text-xs mt-10">Bay Area · Private Beta · 2025</p>
     </div>
   )
 }
