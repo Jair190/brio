@@ -37,7 +37,9 @@ export default function LoginPage() {
       setError('Invalid email or password.')
       return
     }
-    router.push('/')
+    const { data: { user } } = await supabase.auth.getUser()
+    const role = user?.user_metadata?.role
+    router.push(role === 'tradesman' ? '/tradesman' : '/client')
     router.refresh()
   }
 

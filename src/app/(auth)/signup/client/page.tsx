@@ -36,6 +36,7 @@ export default function ClientSignupPage() {
           full_name: values.full_name,
           phone: values.phone ?? null,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/client`,
       },
     })
     if (error) {

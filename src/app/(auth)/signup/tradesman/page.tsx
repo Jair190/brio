@@ -35,7 +35,7 @@ export default function TradesmanSignupPage() {
           full_name: values.full_name,
           phone: values.phone,
         },
-        emailRedirectTo: `${window.location.origin}/tradesman`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/tradesman`,
       },
     })
     if (error) {
