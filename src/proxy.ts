@@ -45,7 +45,9 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && (pathname === '/login' || pathname.startsWith('/signup'))) {
-    return NextResponse.redirect(new URL('/', request.url))
+    const role = user.user_metadata?.role
+    const dest = role === 'tradesman' ? '/tradesman' : '/client'
+    return NextResponse.redirect(new URL(dest, request.url))
   }
 
   return supabaseResponse
