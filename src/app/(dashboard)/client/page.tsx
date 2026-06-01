@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus, Clock, CheckCircle, Loader2, ArrowRight } from 'lucide-react'
+import { Clock, CheckCircle, Loader2, ArrowRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { isDevMode, DEV_USER } from '@/lib/dev-mode'
@@ -107,7 +107,8 @@ export default async function ClientDashboardPage() {
 function JobRow({ job, showDivider }: { job: Job; showDivider: boolean }) {
   const diy = job.ai_recommended_diy
   return (
-    <div
+    <Link
+      href={`/client/job/${job.id}`}
       className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-stone-50 transition-colors duration-150"
       style={showDivider ? { borderTop: '1px solid #f5f5f4' } : {}}
     >
@@ -127,6 +128,6 @@ function JobRow({ job, showDivider }: { job: Job; showDivider: boolean }) {
         <StatusIcon status={job.status} />
         {STATUS_LABELS[job.status]}
       </span>
-    </div>
+    </Link>
   )
 }

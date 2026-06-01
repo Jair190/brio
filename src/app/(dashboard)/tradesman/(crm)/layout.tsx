@@ -126,7 +126,27 @@ export default async function CRMLayout({ children }: { children: React.ReactNod
           <span className="text-white font-semibold text-sm">{orgName}</span>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-6 overflow-auto pb-20 lg:pb-6">{children}</main>
+
+        {/* Mobile bottom nav */}
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex" style={{ background: '#141210', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          {[
+            { href: '/tradesman',          label: 'Overview',   icon: LayoutDashboard },
+            { href: '/tradesman/clients',  label: 'Clients',    icon: Users },
+            { href: '/tradesman/pipeline', label: 'Pipeline',   icon: Columns3 },
+            { href: '/tradesman/calendar', label: 'Calendar',   icon: Calendar },
+            { href: '/tradesman/tasks',    label: 'Tasks',      icon: CheckSquare },
+          ].map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-stone-600 hover:text-stone-300 transition-colors"
+            >
+              <Icon className="h-5 w-5" />
+              <span className="text-[9px] font-medium">{label}</span>
+            </Link>
+          ))}
+        </nav>
       </div>
     </div>
   )

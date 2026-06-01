@@ -46,8 +46,10 @@ export async function createOrganization(formData: FormData): Promise<{ error?: 
 // ─── Join org flow ─────────────────────────────────────────────
 
 export async function searchOrganizations(query: string): Promise<{ id: string; name: string; email: string | null }[]> {
-  const supabase = await createClient()
-  const { data } = await (supabase as any)
+  // New users have no team_member record yet, so RLS blocks the regular client.
+  // Use admin client so the search works during onboarding.
+  const admin = createAdminClient() as any
+  const { data } = await admin
     .from('organizations')
     .select('id, name, email')
     .ilike('name', `%${query}%`)

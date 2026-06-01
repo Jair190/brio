@@ -1,67 +1,72 @@
-import { CheckCircle } from 'lucide-react'
+import Link from 'next/link'
+import { CheckCircle, ArrowRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { isDevMode } from '@/lib/dev-mode'
+import type { Job } from '@/types/database'
 
 export default async function JobHistoryPage() {
-  let jobs: { id: string; title: string; city: string; status: string; created_at: string }[] = []
+  let jobs: Job[] = []
 
   if (!isDevMode()) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     const { data } = await supabase
       .from('jobs')
-      .select('id, title, city, status, created_at')
+      .select('*')
       .eq('client_id', user!.id)
       .in('status', ['completed', 'canceled'])
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false }) as unknown as { data: Job[] | null }
     jobs = data ?? []
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Job History</h1>
-        <p className="text-slate-500 mt-1">Your completed and cancelled jobs.</p>
+        <h1 className="font-display text-2xl font-bold text-stone-900">Past Requests</h1>
+        <p className="text-stone-400 mt-1 text-sm">Your completed and cancelled plumbing jobs.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Past jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {jobs.length === 0 ? (
-            <div className="flex flex-col items-center py-10 text-center text-slate-400">
-              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                <CheckCircle className="h-5 w-5 opacity-40" />
+      {jobs.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-stone-200 p-10 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-stone-50 border border-stone-100 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-5 w-5 text-stone-400" />
+          </div>
+          <p className="font-semibold text-stone-700 text-sm mb-1">No past requests yet</p>
+          <p className="text-xs text-stone-400 mb-5 max-w-xs mx-auto">Completed and cancelled jobs will appear here.</p>
+          <Link
+            href="/client/new-request"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors"
+          >
+            Submit a request <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #e7e5e4' }}>
+          {jobs.map((job, i) => (
+            <Link
+              key={job.id}
+              href={`/client/job/${job.id}`}
+              className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-stone-50 transition-colors duration-150"
+              style={i > 0 ? { borderTop: '1px solid #f5f5f4' } : {}}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-stone-900 truncate">{job.title}</p>
+                <p className="text-xs text-stone-400 mt-0.5">
+                  {job.city && <>{job.city} · </>}
+                  {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                </p>
               </div>
-              <p className="text-sm font-medium text-slate-600">No completed jobs yet</p>
-              <p className="text-xs mt-1">Finished jobs will appear here.</p>
-            </div>
-          ) : (
-            <ul className="divide-y">
-              {jobs.map(job => (
-                <li key={job.id} className="py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{job.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {job.city} · {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={job.status === 'completed' ? 'outline' : 'destructive'}
-                    className="text-xs shrink-0 capitalize"
-                  >
-                    {job.status}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${
+                job.status === 'completed' ? 'bg-stone-100 text-stone-500' : 'bg-red-50 text-red-600'
+              }`}>
+                <CheckCircle className="h-3 w-3" />
+                {job.status === 'completed' ? 'Completed' : 'Canceled'}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

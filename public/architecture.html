@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brio — System Architecture</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #020617;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 48px 24px 72px;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(37,99,235,0.15);
+      border: 1px solid rgba(37,99,235,0.35);
+      color: #93c5fd;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 99px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.02em;
+    }
+    .header h1 span { color: #60a5fa; }
+    .header p {
+      color: #64748b;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    /* ─── Diagram canvas ─── */
+    .diagram { max-width: 980px; margin: 0 auto; }
+
+    /* ─── Layer wrapper ─── */
+    .layer { margin-bottom: 0; }
+    .layer-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+      padding-left: 2px;
+    }
+    .layer-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Card ─── */
+    .card {
+      border-radius: 12px;
+      padding: 18px 20px;
+      border: 1px solid;
+      flex: 1;
+      min-width: 160px;
+      max-width: 220px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .card-icon {
+      font-size: 18px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .card-items {
+      list-style: none;
+      font-size: 11.5px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .card-items li {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 1px 0;
+    }
+    .card-items li::before {
+      content: '·';
+      color: #475569;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ─── Connector arrow ─── */
+    .connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      gap: 0;
+      position: relative;
+    }
+    .connector-line {
+      width: 1px;
+      flex: 1;
+      background: linear-gradient(to bottom, #1e293b, #334155);
+    }
+    .connector-arrow {
+      color: #334155;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .connector-label {
+      position: absolute;
+      right: calc(50% + 12px);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      color: #475569;
+      white-space: nowrap;
+      font-style: italic;
+    }
+
+    /* ─── Color themes ─── */
+
+    /* Users */
+    .layer-label-users { color: #64748b; }
+    .card-user { background: #0f172a; border-color: #1e293b; }
+    .card-user .card-title { color: #94a3b8; }
+
+    /* Frontend */
+    .layer-label-frontend { color: #60a5fa; }
+    .card-frontend { background: #0f1f3d; border-color: rgba(37,99,235,0.3); }
+    .card-frontend .card-title { color: #60a5fa; }
+    .card-frontend .card-items { color: #7dd3fc; }
+    .card-frontend .card-items li::before { color: #1e40af; }
+
+    /* Server */
+    .layer-label-server { color: #38bdf8; }
+    .card-server { background: #071e2e; border-color: rgba(14,165,233,0.25); }
+    .card-server .card-title { color: #38bdf8; }
+    .card-server .card-items { color: #7dd3fc; }
+    .card-server .card-items li::before { color: #0c4a6e; }
+
+    /* AI */
+    .card-ai { background: #160f2d; border-color: rgba(139,92,246,0.3); }
+    .card-ai .card-title { color: #c4b5fd; }
+    .card-ai .card-items { color: #a78bfa; }
+    .card-ai .card-items li::before { color: #4c1d95; }
+
+    /* External */
+    .layer-label-external { color: #a78bfa; }
+    .card-external-anthropic { background: #1a0f2e; border-color: rgba(168,85,247,0.3); }
+    .card-external-anthropic .card-title { color: #d8b4fe; }
+    .card-external-anthropic .card-items { color: #c084fc; }
+    .card-external-anthropic .card-items li::before { color: #4c1d95; }
+
+    .card-external-supabase { background: #0b1f12; border-color: rgba(52,211,153,0.25); }
+    .card-external-supabase .card-title { color: #6ee7b7; }
+    .card-external-supabase .card-items { color: #a7f3d0; }
+    .card-external-supabase .card-items li::before { color: #064e3b; }
+
+    .card-external-stripe { background: #111827; border-color: rgba(99,102,241,0.2); opacity: 0.7; }
+    .card-external-stripe .card-title { color: #818cf8; }
+    .card-external-stripe .card-items { color: #a5b4fc; }
+    .card-external-stripe .card-items li::before { color: #312e81; }
+
+    /* Database */
+    .layer-label-db { color: #4ade80; }
+    .db-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .db-chip {
+      background: #0b1f12;
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #6ee7b7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 130px;
+      text-align: center;
+      transition: transform 0.15s ease;
+    }
+    .db-chip:hover { transform: translateY(-2px); }
+    .db-chip-icon { font-size: 16px; }
+    .db-chip-name { font-weight: 700; font-size: 12px; }
+    .db-chip-desc { font-size: 10px; color: #34d399; opacity: 0.6; }
+
+    /* ─── Badge ─── */
+    .badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    .badge-planned {
+      background: rgba(245,158,11,0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    /* ─── Flows section ─── */
+    .flows {
+      max-width: 980px;
+      margin: 52px auto 0;
+      border-top: 1px solid #1e293b;
+      padding-top: 40px;
+    }
+    .flows-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #475569;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .flows-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .flow-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .flow-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .flow-title-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      padding: 5px 0;
+      position: relative;
+    }
+    .flow-step + .flow-step::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: -5px;
+      height: 5px;
+      width: 1px;
+      background: #1e293b;
+    }
+    .flow-step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .flow-step-text { color: #94a3b8; line-height: 1.4; }
+    .flow-step-text strong { color: #e2e8f0; font-weight: 600; }
+
+    .flow-blue .flow-title-dot { background: #3b82f6; }
+    .flow-blue .flow-step-num { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+
+    .flow-purple .flow-title-dot { background: #8b5cf6; }
+    .flow-purple .flow-step-num { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+
+    .flow-green .flow-title-dot { background: #22c55e; }
+    .flow-green .flow-step-num { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+
+    /* ─── Job status flow ─── */
+    .status-flow {
+      max-width: 980px;
+      margin: 40px auto 0;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px 28px;
+    }
+    .status-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-bottom: 20px;
+    }
+    .status-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .status-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-pill-label {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .status-pill-sub {
+      font-size: 9px;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-pill.active .status-pill-label {
+      background: rgba(37,99,235,0.15);
+      border-color: rgba(37,99,235,0.4);
+      color: #60a5fa;
+    }
+    .status-arrow {
+      color: #1e293b;
+      font-size: 18px;
+      margin: 0 2px;
+      padding-bottom: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center;
+      margin-top: 56px;
+      color: #334155;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">Private Beta · Bay Area · 2025</div>
+    <h1>Brio — <span>System Architecture</span></h1>
+    <p>Bay Area plumbing marketplace · Client/Tradesman platform with AI triage</p>
+  </div>
+
+  <div class="diagram">
+
+    <!-- Layer 1: Users -->
+    <div class="layer">
+      <div class="layer-label layer-label-users">Users</div>
+      <div class="layer-row">
+        <div class="card card-user">
+          <span class="card-icon">🏠</span>
+          <div class="card-title">Client (Homeowner)</div>
+          <ul class="card-items">
+            <li>Submits plumbing jobs</li>
+            <li>Views job status & history</li>
+            <li>Reviews tradesmen</li>
+          </ul>
+        </div>
+        <div class="card card-user">
+          <span class="card-icon">👤</span>
+          <div class="card-title">Guest / Public</div>
+          <ul class="card-items">
+            <li>Free AI diagnosis at /diagnose</li>
+            <li>Browses marketing pages</li>
+            <li>Signs up via /beta</li>
+          </ul>
+        </div>
+        <div class="card card-user">
+          <span class="card-icon">🔧</span>
+          <div class="card-title">Tradesman (Plumber)</div>
+          <ul class="card-items">
+            <li>Browses & claims jobs</li>
+            <li>Manages profile & availability</li>
+            <li>Tracks earnings</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="connector">
+      <div class="connector-line"></div>
+      <div class="connector-arrow">↓</div>
+      <div class="connector-line"></div>
+    </div>
+
+    <!-- Layer 2: Next.js Frontend -->
+    <div class="layer">
+      <div class="layer-label layer-label-frontend">Next.js 16 — App Router (Frontend)</div>
+      <div class="layer-row">
+        <div class="card card-frontend">
+          <span class="card-icon">🌐</span>
+          <div class="card-title">Landing & Marketing</div>
+          <ul class="card-items">
+            <li>/ — homepage</li>
+            <li>/beta, /founders</li>
+            <li>/diagnose — guest AI</li>
+          </ul>
+        </div>
+        <div class="card card-frontend">
+          <span class="card-icon">🔑</span>
+          <div class="card-title">Auth Pages</div>
+          <ul class="card-items">
+            <li>/login</li>
+            <li>/signup (client + tradesman)</li>
+            <li>/forgot-password</li>
+          </ul>
+        </div>
+        <div class="card card-frontend">
+          <span class="card-icon">📋</span>
+          <div class="card-title">Client Dashboard</div>
+          <ul class="card-items">
+            <li>/client — overview</li>
+            <li>/client/active — live jobs</li>
+            <li>/client/history</li>
+            <li>/client/new-request</li>
+          </ul>
+        </div>
+        <div class="card card-frontend">
+          <span class="card-icon">⚒️</span>
+          <div class="card-title">Tradesman Dashboard</div>
+          <ul class="card-items">
+            <li>/tradesman — job board</li>
+            <li>/tradesman/jobs</li>
+            <li>/tradesman/earnings</li>
+            <li>/tradesman/profile</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="connector">
+      <div class="connector-line"></div>
+      <div class="connector-arrow">↓</div>
+      <div class="connector-line"></div>
+      <div class="connector-label">Server Actions (RSC)</div>
+    </div>
+
+    <!-- Layer 3: Server -->
+    <div class="layer">
+      <div class="layer-label layer-label-server">Next.js — Server Actions & Business Logic</div>
+      <div class="layer-row">
+        <div class="card card-server">
+          <span class="card-icon">🔐</span>
+          <div class="card-title">Auth Actions</div>
+          <ul class="card-items">
+            <li>login / signup</li>
+            <li>logout</li>
+            <li>update-password</li>
+            <li>dev-login (dev mode)</li>
+          </ul>
+        </div>
+        <div class="card card-server">
+          <span class="card-icon">📝</span>
+          <div class="card-title">Job Actions</div>
+          <ul class="card-items">
+            <li>createJobWithTriage</li>
+            <li>Inserts job to Supabase</li>
+            <li>Triggers AI triage</li>
+            <li>Updates cost estimates</li>
+          </ul>
+        </div>
+        <div class="card card-ai">
+          <span class="card-icon">✨</span>
+          <div class="card-title">AI Triage Layer</div>
+          <ul class="card-items">
+            <li>lib/ai/triage.ts</li>
+            <li>DIY vs. professional rec.</li>
+            <li>Cost estimate (Bay Area)</li>
+            <li>Guest triage (no auth)</li>
+          </ul>
+        </div>
+        <div class="card card-server">
+          <span class="card-icon">🤝</span>
+          <div class="card-title">Tradesman Actions</div>
+          <ul class="card-items">
+            <li>claimJob</li>
+            <li>Updates job status → matched</li>
+            <li>Assigns tradesman_id</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="connector">
+      <div class="connector-line"></div>
+      <div class="connector-arrow">↓</div>
+      <div class="connector-line"></div>
+    </div>
+
+    <!-- Layer 4: External Services -->
+    <div class="layer">
+      <div class="layer-label layer-label-external">External Services</div>
+      <div class="layer-row">
+        <div class="card card-external-anthropic">
+          <span class="card-icon">🤖</span>
+          <div class="card-title">Anthropic API</div>
+          <ul class="card-items">
+            <li>Claude Sonnet 4.6</li>
+            <li>Plumbing diagnosis</li>
+            <li>DIY / pro recommendation</li>
+            <li>Bay Area cost estimates</li>
+            <li>Parts + warnings</li>
+          </ul>
+        </div>
+        <div class="card card-external-supabase">
+          <span class="card-icon">🗄️</span>
+          <div class="card-title">Supabase</div>
+          <ul class="card-items">
+            <li>Auth (email + sessions)</li>
+            <li>Postgres database</li>
+            <li>Row-level security</li>
+            <li>Client + server SDKs</li>
+          </ul>
+        </div>
+        <div class="card card-external-stripe">
+          <span class="card-icon">💳</span>
+          <div class="card-title">Stripe <span class="badge badge-planned">Planned</span></div>
+          <ul class="card-items">
+            <li>Payment intents</li>
+            <li>Tradesman payouts</li>
+            <li>Subscription tiers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="connector">
+      <div class="connector-line"></div>
+      <div class="connector-arrow">↓</div>
+      <div class="connector-line"></div>
+    </div>
+
+    <!-- Layer 5: Database -->
+    <div class="layer">
+      <div class="layer-label layer-label-db">Supabase Postgres — Database Tables</div>
+      <div class="db-row">
+        <div class="db-chip">
+          <span class="db-chip-icon">👤</span>
+          <span class="db-chip-name">profiles</span>
+          <span class="db-chip-desc">users + roles</span>
+        </div>
+        <div class="db-chip">
+          <span class="db-chip-icon">🔧</span>
+          <span class="db-chip-name">tradesman_profiles</span>
+          <span class="db-chip-desc">license · radius · availability</span>
+        </div>
+        <div class="db-chip">
+          <span class="db-chip-icon">📋</span>
+          <span class="db-chip-name">jobs</span>
+          <span class="db-chip-desc">status · triage · cost</span>
+        </div>
+        <div class="db-chip">
+          <span class="db-chip-icon">📨</span>
+          <span class="db-chip-name">job_applications</span>
+          <span class="db-chip-desc">proposed price · status</span>
+        </div>
+        <div class="db-chip">
+          <span class="db-chip-icon">⭐</span>
+          <span class="db-chip-name">reviews</span>
+          <span class="db-chip-desc">rating · comment</span>
+        </div>
+        <div class="db-chip">
+          <span class="db-chip-icon">🔔</span>
+          <span class="db-chip-name">notifications</span>
+          <span class="db-chip-desc">type · read state</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Job status flow -->
+  <div class="status-flow">
+    <div class="status-title">Job Lifecycle — Status Flow</div>
+    <div class="status-steps">
+      <div class="status-pill">
+        <div class="status-pill-label">pending_triage</div>
+        <div class="status-pill-sub">Job created</div>
+      </div>
+      <div class="status-arrow">→</div>
+      <div class="status-pill">
+        <div class="status-pill-label">triaged</div>
+        <div class="status-pill-sub">AI processed</div>
+      </div>
+      <div class="status-arrow">→</div>
+      <div class="status-pill active">
+        <div class="status-pill-label">matched</div>
+        <div class="status-pill-sub">Tradesman claimed</div>
+      </div>
+      <div class="status-arrow">→</div>
+      <div class="status-pill">
+        <div class="status-pill-label">confirmed</div>
+        <div class="status-pill-sub">Both accepted</div>
+      </div>
+      <div class="status-arrow">→</div>
+      <div class="status-pill">
+        <div class="status-pill-label">in_progress</div>
+        <div class="status-pill-sub">Work started</div>
+      </div>
+      <div class="status-arrow">→</div>
+      <div class="status-pill">
+        <div class="status-pill-label">completed</div>
+        <div class="status-pill-sub">Job done</div>
+      </div>
+      <div class="status-arrow" style="color:#475569">·</div>
+      <div class="status-pill">
+        <div class="status-pill-label" style="border-color:#ef444444;color:#f87171">canceled</div>
+        <div class="status-pill-sub">Anytime</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Flows -->
+  <div class="flows">
+    <div class="flows-title">Key Data Flows</div>
+    <div class="flows-grid">
+
+      <div class="flow-card flow-blue">
+        <div class="flow-title">
+          <span class="flow-title-dot"></span>
+          Client Posts a Job
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <div class="flow-step-text">Client fills <strong>/client/new-request</strong> form</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <div class="flow-step-text"><strong>createJobWithTriage</strong> server action fires</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <div class="flow-step-text">Job inserted to Supabase as <strong>pending_triage</strong></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <div class="flow-step-text"><strong>Claude Sonnet</strong> diagnoses, returns DIY/pro + cost</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">5</div>
+            <div class="flow-step-text">Job updated to <strong>triaged</strong>, costs saved in cents</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-card flow-green">
+        <div class="flow-title">
+          <span class="flow-title-dot"></span>
+          Tradesman Claims a Job
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <div class="flow-step-text">Tradesman browses <strong>/tradesman/jobs</strong></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <div class="flow-step-text">Clicks <strong>Claim</strong> → ClaimButton fires <code>claimJob()</code></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <div class="flow-step-text">Server Action updates <strong>jobs.status → matched</strong></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <div class="flow-step-text"><strong>tradesman_id</strong> written, page revalidated</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-card flow-purple">
+        <div class="flow-title">
+          <span class="flow-title-dot"></span>
+          Guest AI Diagnosis
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <div class="flow-step-text">Guest visits <strong>/diagnose</strong> (no account needed)</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <div class="flow-step-text">Describes issue, selects urgency</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <div class="flow-step-text"><strong>runGuestTriage()</strong> calls Claude directly</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <div class="flow-step-text">Returns DIY steps or professional recommendation</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">5</div>
+            <div class="flow-step-text">CTA prompts guest to <strong>sign up</strong> to book a plumber</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Brio · Bay Area Plumbing Marketplace · Private Beta 2025
+  </div>
+
+</body>
+</html>

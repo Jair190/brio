@@ -86,7 +86,7 @@ export default function Navbar() {
                 Sign in
               </Link>
               <Link
-                href="/client/new-request"
+                href="/diagnose"
                 className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200"
               >
                 Get a diagnosis
@@ -117,7 +117,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/login" className="block text-sm text-stone-400 hover:text-white transition-colors" onClick={() => setOpen(false)}>Sign in</Link>
-              <Link href="/client/new-request" onClick={() => setOpen(false)} className="block bg-amber-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg text-center">
+              <Link href="/diagnose" onClick={() => setOpen(false)} className="block bg-amber-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg text-center">
                 Get a free diagnosis
               </Link>
             </>

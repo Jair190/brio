@@ -6,27 +6,24 @@ import { useJobTypes, useCreateJobType, useDeleteJobType } from '@/hooks/useJobT
 import { useClientTags, useCreateClientTag, useDeleteClientTag } from '@/hooks/useClientTags'
 import { useJoinRequests } from '@/hooks/useJoinRequests'
 import { approveJoinRequest, rejectJoinRequest } from '@/lib/crm/actions'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Building2, Users, Tag, Briefcase, Mail, Plus, Trash2, Check, X, CheckCircle2, ExternalLink, UserCheck, UserX } from 'lucide-react'
+import { Building2, Users, Tag, Briefcase, Mail, Plus, Trash2, Check, X, ExternalLink, UserCheck, UserX } from 'lucide-react'
 
 const PRESET_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
   '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#6B7280',
 ]
 
+const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/50 transition-all duration-200'
+
 function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {PRESET_COLORS.map(c => (
         <button
           key={c}
           type="button"
           onClick={() => onChange(c)}
-          className={`w-6 h-6 rounded-full transition-transform hover:scale-110 ${value === c ? 'ring-2 ring-offset-1 ring-slate-700 scale-110' : ''}`}
+          className={`w-6 h-6 rounded-full transition-transform hover:scale-110 ${value === c ? 'ring-2 ring-offset-2 ring-offset-[#1C1A17] ring-white/30 scale-110' : ''}`}
           style={{ backgroundColor: c }}
         />
       ))}
@@ -34,7 +31,7 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
         type="color"
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-6 h-6 rounded-full cursor-pointer border border-slate-200 p-0"
+        className="w-6 h-6 rounded-full cursor-pointer bg-transparent border-0 p-0"
         title="Custom color"
       />
     </div>
@@ -61,64 +58,80 @@ function JobTypesTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">Job type categories appear on job cards and help filter your pipeline.</p>
-        <Button size="sm" onClick={() => setShowForm(true)}>
-          <Plus className="h-3.5 w-3.5 mr-1" /> Add type
-        </Button>
+        <p className="text-sm text-stone-400">Job type categories appear on job cards and help filter your pipeline.</p>
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add type
+        </button>
       </div>
 
       {showForm && (
-        <div className="border border-slate-200 rounded-lg p-4 space-y-3 bg-slate-50">
+        <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="space-y-1.5">
-            <Label htmlFor="jt-name">Name</Label>
-            <Input
-              id="jt-name"
+            <label className="block text-xs font-medium text-stone-300">Name</label>
+            <input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Drain Cleaning"
+              className={inputCls}
               onKeyDown={e => e.key === 'Enter' && handleCreate()}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Color</Label>
+            <label className="block text-xs font-medium text-stone-300">Color</label>
             <ColorPicker value={color} onChange={setColor} />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setName('') }}>Cancel</Button>
-            <Button size="sm" disabled={!name.trim() || createJobType.isPending} onClick={handleCreate}>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => { setShowForm(false); setName('') }}
+              className="text-xs px-3 py-1.5 rounded-lg border border-white/10 text-stone-400 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              disabled={!name.trim() || createJobType.isPending}
+              onClick={handleCreate}
+              className="text-xs px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white transition-colors"
+            >
               {createJobType.isPending ? 'Saving…' : 'Add'}
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-stone-500">Loading…</p>
       ) : jobTypes.length === 0 ? (
-        <p className="text-sm text-slate-400">No job types yet.</p>
+        <p className="text-sm text-stone-500">No job types yet.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
-          {jobTypes.map(jt => (
-            <li key={jt.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+        <ul className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+          {jobTypes.map((jt, i) => (
+            <li
+              key={jt.id}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
+              style={i > 0 ? { borderTop: '1px solid rgba(255,255,255,0.05)' } : {}}
+            >
               <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: jt.color }} />
-              <span className="text-sm font-medium text-slate-900 flex-1">{jt.name}</span>
+              <span className="text-sm font-medium text-white flex-1">{jt.name}</span>
               {deletingId === jt.id ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-500 mr-1">Delete?</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-stone-500 mr-1">Delete?</span>
                   <button
                     onClick={async () => { await deleteJobType.mutateAsync(jt.id); setDeletingId(null) }}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-400 hover:text-red-300 transition-colors"
                   >
                     <Check className="h-4 w-4" />
                   </button>
-                  <button onClick={() => setDeletingId(null)} className="text-slate-400 hover:text-slate-600">
+                  <button onClick={() => setDeletingId(null)} className="text-stone-500 hover:text-stone-300 transition-colors">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setDeletingId(jt.id)}
-                  className="text-slate-300 hover:text-red-500 transition-colors"
+                  className="text-stone-700 hover:text-red-400 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -151,64 +164,80 @@ function ClientTagsTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">Tags let you segment your client list for filtering and marketing.</p>
-        <Button size="sm" onClick={() => setShowForm(true)}>
-          <Plus className="h-3.5 w-3.5 mr-1" /> Add tag
-        </Button>
+        <p className="text-sm text-stone-400">Tags let you segment your client list for filtering and marketing.</p>
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add tag
+        </button>
       </div>
 
       {showForm && (
-        <div className="border border-slate-200 rounded-lg p-4 space-y-3 bg-slate-50">
+        <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="space-y-1.5">
-            <Label htmlFor="tag-name">Name</Label>
-            <Input
-              id="tag-name"
+            <label className="block text-xs font-medium text-stone-300">Name</label>
+            <input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. VIP"
+              className={inputCls}
               onKeyDown={e => e.key === 'Enter' && handleCreate()}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Color</Label>
+            <label className="block text-xs font-medium text-stone-300">Color</label>
             <ColorPicker value={color} onChange={setColor} />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setName('') }}>Cancel</Button>
-            <Button size="sm" disabled={!name.trim() || createTag.isPending} onClick={handleCreate}>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => { setShowForm(false); setName('') }}
+              className="text-xs px-3 py-1.5 rounded-lg border border-white/10 text-stone-400 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              disabled={!name.trim() || createTag.isPending}
+              onClick={handleCreate}
+              className="text-xs px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white transition-colors"
+            >
               {createTag.isPending ? 'Saving…' : 'Add'}
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-stone-500">Loading…</p>
       ) : tags.length === 0 ? (
-        <p className="text-sm text-slate-400">No tags yet.</p>
+        <p className="text-sm text-stone-500">No tags yet.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
-          {tags.map(tag => (
-            <li key={tag.id} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+        <ul className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+          {tags.map((tag, i) => (
+            <li
+              key={tag.id}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
+              style={i > 0 ? { borderTop: '1px solid rgba(255,255,255,0.05)' } : {}}
+            >
               <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: tag.color }} />
-              <span className="text-sm font-medium text-slate-900 flex-1">{tag.name}</span>
+              <span className="text-sm font-medium text-white flex-1">{tag.name}</span>
               {deletingId === tag.id ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-500 mr-1">Delete?</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-stone-500 mr-1">Delete?</span>
                   <button
                     onClick={async () => { await deleteTag.mutateAsync(tag.id); setDeletingId(null) }}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-400 hover:text-red-300 transition-colors"
                   >
                     <Check className="h-4 w-4" />
                   </button>
-                  <button onClick={() => setDeletingId(null)} className="text-slate-400 hover:text-slate-600">
+                  <button onClick={() => setDeletingId(null)} className="text-stone-500 hover:text-stone-300 transition-colors">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setDeletingId(tag.id)}
-                  className="text-slate-300 hover:text-red-500 transition-colors"
+                  className="text-stone-700 hover:text-red-400 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -243,42 +272,43 @@ function TeamTab() {
   }
 
   if (!isOwner) {
-    return <p className="text-sm text-slate-500">Only the org owner can manage team access.</p>
+    return <p className="text-sm text-stone-400">Only the org owner can manage team access.</p>
   }
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-slate-500">Approve or reject requests from technicians wanting to join your company.</p>
+      <p className="text-sm text-stone-400">Approve or reject requests from technicians wanting to join your company.</p>
       {isLoading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-stone-500">Loading…</p>
       ) : requests.length === 0 ? (
-        <p className="text-sm text-slate-400">No pending join requests.</p>
+        <p className="text-sm text-stone-500">No pending join requests.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
-          {requests.map(req => (
-            <li key={req.id} className="flex items-center gap-3 px-4 py-3 bg-white">
+        <ul className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+          {requests.map((req, i) => (
+            <li
+              key={req.id}
+              className="flex items-center gap-3 px-4 py-3"
+              style={i > 0 ? { borderTop: '1px solid rgba(255,255,255,0.05)' } : {}}
+            >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900">{req.name}</p>
-                <p className="text-xs text-slate-500">{req.email}</p>
+                <p className="text-sm font-medium text-white">{req.name}</p>
+                <p className="text-xs text-stone-500">{req.email}</p>
               </div>
               <div className="flex gap-1.5 shrink-0">
-                <Button
-                  size="sm"
-                  className="h-7 text-xs bg-green-600 hover:bg-green-700 text-white gap-1"
+                <button
                   disabled={loadingId === req.id}
                   onClick={() => handleApprove(req.id)}
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-green-900/30 text-green-400 hover:bg-green-900/50 disabled:opacity-50 transition-colors"
                 >
                   <UserCheck className="h-3.5 w-3.5" /> Approve
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs gap-1 text-red-600 border-red-200 hover:bg-red-50"
+                </button>
+                <button
                   disabled={loadingId === req.id}
                   onClick={() => handleReject(req.id)}
+                  className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-red-900/20 text-red-400 hover:bg-red-900/40 disabled:opacity-50 transition-colors"
                 >
                   <UserX className="h-3.5 w-3.5" /> Reject
-                </Button>
+                </button>
               </div>
             </li>
           ))}
@@ -296,30 +326,30 @@ export default function SettingsPage() {
   const { data: joinRequests = [] } = useJoinRequests()
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: 'org', label: 'Organization', icon: Building2 },
-    { id: 'team', label: 'Team', icon: Users },
-    { id: 'job-types', label: 'Job Types', icon: Briefcase },
-    { id: 'tags', label: 'Client Tags', icon: Tag },
-    { id: 'gmail', label: 'Gmail', icon: Mail },
+    { id: 'org',       label: 'Organization', icon: Building2 },
+    { id: 'team',      label: 'Team',         icon: Users },
+    { id: 'job-types', label: 'Job Types',    icon: Briefcase },
+    { id: 'tags',      label: 'Client Tags',  icon: Tag },
+    { id: 'gmail',     label: 'Gmail',        icon: Mail },
   ]
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-slate-500 text-sm mt-1">Manage your organization and CRM settings</p>
+        <h1 className="font-display text-2xl font-bold text-white">Settings</h1>
+        <p className="text-stone-500 text-sm mt-1">Manage your organization and CRM settings</p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-slate-200">
+      <div className="flex gap-0.5 overflow-x-auto" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               tab === id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-amber-600 text-amber-400'
+                : 'border-transparent text-stone-500 hover:text-stone-300'
             }`}
           >
             <Icon className="h-4 w-4" /> {label}
@@ -333,109 +363,87 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab content */}
-      {tab === 'team' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-4 w-4" /> Team
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TeamTab />
-          </CardContent>
-        </Card>
-      )}
-
-      {tab === 'org' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Building2 className="h-4 w-4" /> Organization
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-slate-500 text-xs mb-1">Company name</p>
-                <p className="font-medium text-slate-900">{org?.name ?? '—'}</p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-xs mb-1">Business phone</p>
-                <p className="font-medium text-slate-900">{org?.phone ?? '—'}</p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-xs mb-1">Business email</p>
-                <p className="font-medium text-slate-900">{org?.email ?? '—'}</p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-xs mb-1">Your role</p>
-                <Badge variant="secondary" className="capitalize">{member?.role ?? '—'}</Badge>
-              </div>
+      <div className="rounded-2xl p-6" style={{ background: '#1A1714', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {tab === 'org' && (
+          <div className="space-y-5">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-stone-400" /> Organization
+            </p>
+            <div className="grid grid-cols-2 gap-5">
+              {[
+                { label: 'Company name', value: org?.name },
+                { label: 'Business phone', value: org?.phone },
+                { label: 'Business email', value: org?.email },
+                { label: 'Your role', value: member?.role },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="text-xs text-stone-500 mb-1">{label}</p>
+                  <p className="text-sm font-medium text-white capitalize">{value ?? '—'}</p>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {tab === 'job-types' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Briefcase className="h-4 w-4" /> Job Types
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {tab === 'team' && (
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">
+              <Users className="h-4 w-4 text-stone-400" /> Team
+            </p>
+            <TeamTab />
+          </div>
+        )}
+
+        {tab === 'job-types' && (
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-stone-400" /> Job Types
+            </p>
             <JobTypesTab />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {tab === 'tags' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Tag className="h-4 w-4" /> Client Tags
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {tab === 'tags' && (
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">
+              <Tag className="h-4 w-4 text-stone-400" /> Client Tags
+            </p>
             <ClientTagsTab />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {tab === 'gmail' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Mail className="h-4 w-4" /> Gmail Sync
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-slate-500">
+        {tab === 'gmail' && (
+          <div className="space-y-5">
+            <p className="text-sm font-semibold text-white flex items-center gap-2">
+              <Mail className="h-4 w-4 text-stone-400" /> Gmail Sync
+            </p>
+            <p className="text-sm text-stone-400 leading-relaxed">
               Connect your Gmail account to automatically log inbound and outbound emails as activity on matching clients.
               Emails from unknown senders appear in the Unmatched Emails tab so you can link them manually.
             </p>
-            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">How it works</p>
-              <ul className="text-sm text-slate-500 space-y-1 list-disc list-inside">
-                <li>We sync every 2 minutes using Gmail's History API</li>
+            <div className="rounded-xl p-4 space-y-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide">How it works</p>
+              <ul className="text-sm text-stone-500 space-y-1.5 list-disc list-inside">
+                <li>We sync every 2 minutes using Gmail&apos;s History API</li>
                 <li>Emails are matched to clients by sender/recipient email address</li>
                 <li>Matched emails create activity log entries automatically</li>
                 <li>No emails are sent on your behalf — read-only access</li>
               </ul>
             </div>
-            <a href="/api/auth/gmail">
-              <Button className="gap-2">
-                <Mail className="h-4 w-4" />
-                Connect Gmail account
-                <ExternalLink className="h-3.5 w-3.5 ml-1 opacity-60" />
-              </Button>
+            <a
+              href="/api/auth/gmail"
+              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <Mail className="h-4 w-4" />
+              Connect Gmail account
+              <ExternalLink className="h-3.5 w-3.5 opacity-60" />
             </a>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-stone-600">
               You will be redirected to Google to authorize read-only Gmail access.
             </p>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -31,7 +31,7 @@ export default function LandingPage() {
 
           <div className="animate-fade-up delay-300 flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/client/new-request"
+              href="/diagnose"
               className="inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 text-sm"
             >
               Get a free diagnosis <ArrowRight className="h-4 w-4" />
@@ -184,7 +184,7 @@ export default function LandingPage() {
             Describe your problem. We'll tell you what it is, what it'll cost, and who can fix it.
           </p>
           <Link
-            href="/client/new-request"
+            href="/diagnose"
             className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-200"
           >
             Get your free diagnosis <ArrowRight className="h-4 w-4" />
