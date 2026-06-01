@@ -25,8 +25,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   let role = user.user_metadata?.role as 'client' | 'tradesman' | undefined
 
-  // Fallback: if role isn't in metadata, check team_members table.
-  if (!role && !isDevMode()) {
+  // Fallback: if not confirmed tradesman by metadata, check team_members table.
+  // Handles accounts where role metadata is missing or incorrectly set to 'client'.
+  if (role !== 'tradesman' && !isDevMode()) {
     const supabase = await createClient()
     const { data: member } = await (supabase as any)
       .from('team_members')
