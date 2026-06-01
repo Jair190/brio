@@ -18,6 +18,7 @@ const MOCK_CLIENTS: CRMClient[] = [
     billing_address: null,
     notes: 'Has older copper pipes. Prefers morning appointments.',
     created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+    tags: [{ id: 'tag-1', org_id: 'dev-org-id', name: 'VIP', color: '#F59E0B', created_at: '' }],
   },
   {
     id: 'mock-client-2',
@@ -29,6 +30,7 @@ const MOCK_CLIENTS: CRMClient[] = [
     billing_address: null,
     notes: null,
     created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+    tags: [],
   },
   {
     id: 'mock-client-3',
@@ -40,6 +42,7 @@ const MOCK_CLIENTS: CRMClient[] = [
     billing_address: null,
     notes: 'Rental property — contact landlord for access.',
     created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    tags: [{ id: 'tag-2', org_id: 'dev-org-id', name: 'Rental', color: '#06B6D4', created_at: '' }],
   },
 ]
 
@@ -65,7 +68,7 @@ export function useCRMClients(search?: string) {
       const db = supabase as any
       let query = db
         .from('clients')
-        .select('*')
+        .select('*, client_tag_assignments(client_tags(id, name, color))')
         .eq('org_id', orgId!)
         .order('created_at', { ascending: false })
 
@@ -74,7 +77,10 @@ export function useCRMClients(search?: string) {
       }
 
       const { data } = await query
-      return ((data as CRMClient[]) ?? []) as CRMClient[]
+      return ((data ?? []) as any[]).map(c => ({
+        ...c,
+        tags: (c.client_tag_assignments ?? []).map((a: any) => a.client_tags).filter(Boolean),
+      })) as CRMClient[]
     },
   })
 }

@@ -8,21 +8,14 @@ import Link from 'next/link'
 import {
   ChevronRight,
   Loader2,
-  CheckCircle,
   Wrench,
   AlertTriangle,
   ShoppingCart,
-  LogIn,
+  RotateCcw,
 } from 'lucide-react'
 import { runGuestTriage } from '@/lib/ai/guest-actions'
-import type { AiTriageResult } from '@/types/database'
 import type { TriageOutput } from '@/lib/ai/triage'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Navbar from '@/components/layout/Navbar'
 
 const schema = z.object({
   description: z.string().min(20, 'Please describe your issue in a bit more detail'),
@@ -37,6 +30,8 @@ const URGENCY_LABELS: Record<string, string> = {
   high: 'Urgent — within 24 hours',
   emergency: 'Emergency — right now',
 }
+
+const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-stone-500 text-sm focus:outline-none focus:border-amber-600/60 transition-all duration-200"
 
 export default function DiagnosePage() {
   const [result, setResult] = useState<TriageOutput | null>(null)
@@ -61,229 +56,228 @@ export default function DiagnosePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100">
-      {/* Nav */}
-      <header className="bg-white border-b shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-slate-900">
-            <Wrench className="h-5 w-5 text-blue-600" />
-            Brio
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900 transition-colors duration-150">Sign in</Link>
-            <Link href="/signup">
-              <Button size="sm" variant="outline" className="transition-all duration-200">Create account</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen relative" style={{ background: '#0C0A09' }}>
+      {/* Grain overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.035]"
+        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '200px 200px' }}
+      />
 
-      <main className="max-w-xl mx-auto px-4 py-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Free Plumbing Diagnosis</h1>
-          <p className="text-slate-700 mt-2">
-            Describe your issue and get expert AI guidance — no account required.
+      {/* Copper glow */}
+      <div
+        className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] opacity-20"
+        style={{ background: 'radial-gradient(ellipse at center top, #C26D21 0%, transparent 70%)' }}
+      />
+
+      <Navbar />
+
+      <main className="relative max-w-xl mx-auto px-4 py-12">
+        <div className="text-center mb-10">
+          <p className="text-xs font-semibold tracking-[0.2em] text-amber-600 uppercase mb-3">Free AI Diagnosis</p>
+          <h1 className="font-display text-3xl font-bold text-white">What&apos;s going wrong?</h1>
+          <p className="text-stone-400 mt-2 text-sm">
+            Describe your plumbing issue — get expert guidance instantly, no account needed.
           </p>
         </div>
 
         {!result ? (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">What&apos;s the problem?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="description">Describe your issue</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="e.g. My kitchen sink is leaking under the cabinet and there's water pooling on the floor…"
-                    rows={4}
-                    {...register('description')}
-                  />
-                  {errors.description && (
-                    <p className="text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm">{errors.description.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <Label>How urgent is this?</Label>
-                  <Select
-                    defaultValue="medium"
-                    onValueChange={(val) => val && setValue('urgency', val as FormValues['urgency'])}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(URGENCY_LABELS).map(([val, label]) => (
-                        <SelectItem key={val} value={val}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {submitError && (
-                  <p className="text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm">{submitError}</p>
+          <div className="rounded-2xl p-6 space-y-5" style={{ background: '#1A1714', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <label className="block text-xs font-medium text-stone-400 mb-1.5">
+                  Describe your issue <span className="text-amber-600">*</span>
+                </label>
+                <textarea
+                  placeholder="e.g. My kitchen sink is leaking under the cabinet and there's water pooling on the floor…"
+                  rows={4}
+                  className={inputCls + ' resize-none'}
+                  {...register('description')}
+                />
+                {errors.description && (
+                  <p className="text-xs text-red-400 mt-1.5">{errors.description.message}</p>
                 )}
+              </div>
 
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-200" disabled={isPending}>
-                  {isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing your issue…
-                    </>
-                  ) : (
-                    <>
-                      Get free diagnosis <ChevronRight className="h-4 w-4 ml-1" />
-                    </>
-                  )}
-                </Button>
+              <div>
+                <label className="block text-xs font-medium text-stone-400 mb-1.5">How urgent is this?</label>
+                <select
+                  defaultValue="medium"
+                  onChange={e => setValue('urgency', e.target.value as FormValues['urgency'])}
+                  className={inputCls + ' cursor-pointer appearance-none'}
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23737373' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}
+                >
+                  {Object.entries(URGENCY_LABELS).map(([val, label]) => (
+                    <option key={val} value={val} style={{ background: '#1C1A17', color: '#fff' }}>{label}</option>
+                  ))}
+                </select>
+              </div>
 
-                <p className="text-center text-xs text-slate-500">
-                  No account needed. Results are instant.
-                </p>
-              </form>
-            </CardContent>
-          </Card>
+              {submitError && (
+                <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5">{submitError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-60 text-white text-sm font-semibold px-5 py-3 rounded-xl transition-all duration-200"
+              >
+                {isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing your issue…</>
+                ) : (
+                  <>Get free diagnosis <ChevronRight className="h-4 w-4" /></>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-stone-600">No account needed. Results are instant.</p>
+            </form>
+          </div>
         ) : (
-          <TriageResult output={result} />
+          <TriageResult output={result} onReset={() => setResult(null)} />
         )}
       </main>
     </div>
   )
 }
 
-function TriageResult({ output }: { output: TriageOutput }) {
+function TriageResult({ output, onReset }: { output: TriageOutput; onReset: () => void }) {
   const { triage, estimated_cost_min, estimated_cost_max } = output
   const isDiy = triage.recommended_action === 'diy'
 
+  const cardCls = "rounded-2xl p-5 space-y-4"
+  const cardStyle = { background: '#1A1714', border: '1px solid rgba(255,255,255,0.08)' }
+
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className={`flex items-center gap-3 p-4 rounded-xl ${isDiy ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
-        <div className={`rounded-full p-2 ${isDiy ? 'bg-green-100' : 'bg-blue-100'}`}>
+      {/* Recommendation banner */}
+      <div
+        className="rounded-2xl p-4 flex items-start gap-3"
+        style={isDiy
+          ? { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }
+          : { background: 'rgba(217,119,6,0.10)', border: '1px solid rgba(217,119,6,0.25)' }
+        }
+      >
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={isDiy ? { background: 'rgba(34,197,94,0.15)' } : { background: 'rgba(217,119,6,0.15)' }}
+        >
           {isDiy
-            ? <CheckCircle className="h-6 w-6 text-green-600" />
-            : <Wrench className="h-6 w-6 text-blue-600" />
+            ? <ShoppingCart className="h-4 w-4 text-green-400" />
+            : <Wrench className="h-4 w-4 text-amber-400" />
           }
         </div>
         <div>
-          <p className={`font-semibold ${isDiy ? 'text-green-800' : 'text-blue-800'}`}>
-            {isDiy ? 'You can fix this yourself' : 'A licensed plumber is recommended'}
+          <p className={`text-sm font-semibold ${isDiy ? 'text-green-300' : 'text-amber-300'}`}>
+            {isDiy ? 'You may be able to fix this yourself' : 'A licensed plumber is recommended'}
           </p>
-          <p className={`text-xs mt-0.5 capitalize ${isDiy ? 'text-green-600' : 'text-blue-600'}`}>
+          <p className={`text-xs mt-0.5 capitalize ${isDiy ? 'text-green-500' : 'text-amber-600'}`}>
             Complexity: {triage.estimated_complexity}
           </p>
         </div>
       </div>
 
-      <Card className="shadow-sm">
-        <CardContent className="pt-5 space-y-4">
-          {/* Diagnosis */}
-          <div className="space-y-1 border-l-4 border-blue-200 pl-3">
-            <p className="text-xs font-semibold text-slate-500 uppercase">Diagnosis</p>
-            <p className="text-sm text-slate-700">{triage.diagnosis}</p>
+      {/* Diagnosis */}
+      <div className={cardCls} style={cardStyle}>
+        <div>
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-stone-500 mb-2">AI Diagnosis</p>
+          <p className="text-sm text-stone-300 leading-relaxed">{triage.diagnosis}</p>
+        </div>
+
+        {/* Cost estimate */}
+        {!isDiy && estimated_cost_min != null && estimated_cost_max != null && (
+          <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-stone-500 mb-1">Estimated Cost (Bay Area)</p>
+            <p className="text-2xl font-bold text-white">${estimated_cost_min}–${estimated_cost_max}</p>
+            <p className="text-xs text-stone-600 mt-0.5">Labor + parts. Final price set by your plumber.</p>
           </div>
+        )}
+      </div>
 
-          {/* Cost estimate (pro only) */}
-          {!isDiy && estimated_cost_min != null && estimated_cost_max != null && (
-            <div className="bg-slate-50 rounded-md p-3">
-              <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Estimated Cost (Bay Area)</p>
-              <p className="text-2xl font-bold text-slate-900">${estimated_cost_min} – ${estimated_cost_max}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Labor + parts. Final price set by your plumber.</p>
-            </div>
-          )}
+      {/* DIY steps */}
+      {isDiy && triage.diy_steps && triage.diy_steps.length > 0 && (
+        <div className={cardCls} style={cardStyle}>
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-stone-500">Steps to fix it</p>
+          <ol className="space-y-3">
+            {triage.diy_steps.map((step, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm text-stone-300">
+                <span className="shrink-0 w-5 h-5 rounded-full bg-amber-600/20 border border-amber-600/30 text-amber-400 text-xs font-semibold flex items-center justify-center mt-0.5">
+                  {i + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
-          {/* DIY steps */}
-          {isDiy && triage.diy_steps && triage.diy_steps.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500 uppercase">Steps</p>
-              <ol className="space-y-2">
-                {triage.diy_steps.map((step, i) => (
-                  <li key={i} className="flex gap-3 text-sm">
-                    <span className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mt-0.5">
-                      {i + 1}
-                    </span>
-                    <span className="text-slate-700">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+      {/* Parts needed */}
+      {isDiy && triage.parts_needed && triage.parts_needed.length > 0 && (
+        <div className={cardCls} style={cardStyle}>
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-stone-500 flex items-center gap-1.5">
+            <ShoppingCart className="h-3 w-3" /> Parts you&apos;ll need
+          </p>
+          <ul className="space-y-2">
+            {triage.parts_needed.map((part, i) => (
+              <li key={i} className="flex items-center gap-2.5 text-sm text-stone-300">
+                <span className="h-1 w-1 rounded-full bg-amber-600 shrink-0" />
+                {part}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          {/* Parts needed */}
-          {isDiy && triage.parts_needed && triage.parts_needed.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
-                <ShoppingCart className="h-3 w-3" /> Parts you&apos;ll need
-              </p>
-              <ul className="space-y-1">
-                {triage.parts_needed.map((part, i) => (
-                  <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400 flex-shrink-0" />
-                    {part}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {/* Warnings */}
+      {triage.warnings && triage.warnings.length > 0 && (
+        <div className="rounded-2xl p-4 space-y-2" style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-red-400 flex items-center gap-1.5">
+            <AlertTriangle className="h-3 w-3" /> Heads up
+          </p>
+          <ul className="space-y-1.5">
+            {triage.warnings.map((w, i) => (
+              <li key={i} className="text-sm text-red-300">{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          {/* Warnings */}
-          {triage.warnings && triage.warnings.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-1 shadow-sm">
-              <p className="text-xs font-semibold text-amber-700 uppercase flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" /> Heads up
-              </p>
-              <ul className="space-y-1">
-                {triage.warnings.map((w, i) => (
-                  <li key={i} className="text-sm text-amber-800">{w}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* CTAs */}
+      {/* CTA */}
       {isDiy ? (
-        <div className="space-y-3">
-          <div className="bg-slate-50 border rounded-xl p-6 text-center space-y-3 shadow-sm">
-            <p className="text-sm text-slate-600">
-              Want to save this diagnosis or get a professional opinion?
-            </p>
-            <Link href="/signup/client">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-200">
-                <LogIn className="h-4 w-4 mr-2" /> Create a free account
-              </Button>
-            </Link>
-            <Link href="/" className="block text-xs text-slate-500 hover:text-slate-600 transition-colors duration-150">
-              No thanks, I&apos;m good
-            </Link>
-          </div>
+        <div className="rounded-2xl p-5 text-center space-y-3" style={{ background: '#1A1714', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p className="text-sm text-stone-400">Want to save this or get a second opinion from a pro?</p>
+          <Link
+            href="/signup/client"
+            className="flex items-center justify-center gap-2 w-full bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-5 py-3 rounded-xl transition-all duration-200"
+          >
+            Create a free account
+          </Link>
+          <Link href="/" className="block text-xs text-stone-600 hover:text-stone-400 transition-colors duration-150">
+            No thanks, I&apos;m good
+          </Link>
         </div>
       ) : (
-        <div className="bg-blue-600 rounded-xl p-5 text-white text-center space-y-3 shadow-md">
-          <Wrench className="h-8 w-8 mx-auto text-blue-200" />
-          <p className="font-semibold text-lg">Ready to book a licensed plumber?</p>
-          <p className="text-sm text-blue-100">
-            Create a free account to get matched with vetted plumbers in your area — usually within the hour.
+        <div className="rounded-2xl p-5 text-center space-y-3" style={{ background: 'rgba(217,119,6,0.10)', border: '1px solid rgba(217,119,6,0.25)' }}>
+          <Wrench className="h-6 w-6 mx-auto text-amber-500" />
+          <p className="font-display font-bold text-white">Ready to book a licensed plumber?</p>
+          <p className="text-sm text-stone-400">
+            Create a free account to get matched with vetted Bay Area plumbers — usually within the hour.
           </p>
-          <Link href="/signup/client">
-            <Button className="w-full bg-white text-blue-700 hover:bg-blue-50 mt-1 transition-all duration-200">
-              Book a plumber — it&apos;s free to start
-            </Button>
+          <Link
+            href="/signup/client"
+            className="flex items-center justify-center gap-2 w-full bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-5 py-3 rounded-xl transition-all duration-200"
+          >
+            Book a plumber — it&apos;s free to start
           </Link>
-          <Link href="/login" className="block text-xs text-blue-300 hover:text-white mt-1 transition-colors duration-150">
+          <Link href="/login" className="block text-xs text-stone-600 hover:text-stone-400 transition-colors duration-150">
             Already have an account? Sign in
           </Link>
         </div>
       )}
 
       <button
-        onClick={() => window.location.reload()}
-        className="w-full text-center text-sm text-slate-500 hover:text-slate-600 py-2 transition-colors duration-150"
+        onClick={onReset}
+        className="w-full flex items-center justify-center gap-2 text-sm text-stone-600 hover:text-stone-400 py-2 transition-colors duration-150"
       >
-        Diagnose a different issue
+        <RotateCcw className="h-3.5 w-3.5" /> Diagnose a different issue
       </button>
     </div>
   )

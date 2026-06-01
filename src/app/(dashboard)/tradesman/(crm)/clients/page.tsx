@@ -133,7 +133,22 @@ export default function ClientsPage() {
                     {client.name[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white text-sm">{client.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-white text-sm">{client.name}</p>
+                      {client.tags && client.tags.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          {client.tags.map(tag => (
+                            <span
+                              key={tag.id}
+                              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                              style={{ backgroundColor: tag.color + '28', color: tag.color }}
+                            >
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-3 mt-0.5 text-xs text-stone-500">
                       {client.phone && (
                         <span className="flex items-center gap-1">
